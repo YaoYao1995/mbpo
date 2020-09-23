@@ -229,7 +229,11 @@ class UCB(RLAlgorithm):
                     # self._visualize_model(self._evaluation_environment, self._total_timestep)
                     self._training_progress.resume()
 
-                self._do_sampling(timestep=self._total_timestep)
+                # No UCB exploration
+                #self._do_sampling(timestep=self._total_timestep)
+                
+                self._do_sampling(timestep=self._total_timestep, disturb=True, fake_env=self.fake_env, Qs = self._Qs)
+                #print("**exploration**")
                 gt.stamp('sample')
 
                 if self.ready_to_train:
@@ -385,7 +389,7 @@ class UCB(RLAlgorithm):
             next_obs, rew, term, info = self.fake_env.step(obs, act, **kwargs)
             steps_added.append(len(obs))
 
-            samples = {'observations': obs, 'actions': act, 'next_observations': next_obs, 'rewards': rew, 'terminals': term, 'stds': info['dev']}
+            samples = {'observations': obs, 'actions': act, 'next_observations': next_obs, 'rewards': rew, 'terminals': term, 'stds': info['dev'][:,None]}
             self._model_pool.add_samples(samples)
 
             nonterm_mask = ~term.squeeze(-1)

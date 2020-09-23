@@ -216,7 +216,7 @@ def run_example_local(example_module_name, example_argv, local_mode=False):
         resources=example_args.resources or {},
         local_mode=local_mode,
         #include_webui=example_args.include_webui,
-        temp_dir="/data1/yaooyao/ray_tmp")
+        temp_dir="/data2/yaooyao/ray_tmp")
 
     tune.run_experiments(
         experiments,

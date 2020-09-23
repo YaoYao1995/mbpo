@@ -22,6 +22,8 @@ from __future__ import print_function
 import logging
 
 import click
+import sys
+sys.path.append('/data2/yaooyao/mbpo/')
 
 from examples.instrument import (
     run_example_dry,

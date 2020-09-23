@@ -317,8 +317,8 @@ class RLAlgorithm(tf.contrib.checkpoint.Checkpointable):
     def ready_to_train(self):
         return self.sampler.batch_ready()
 
-    def _do_sampling(self, timestep):
-        self.sampler.sample()
+    def _do_sampling(self, timestep, disturb=False, fake_env=None, Qs = None):
+        self.sampler.sample(disturb, fake_env, Qs)
 
     def _do_training_repeats(self, timestep):
         """Repeat training _n_train_repeat times every _train_every_n_steps"""
