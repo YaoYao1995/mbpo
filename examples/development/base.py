@@ -54,6 +54,18 @@ ALGORITHM_PARAMS_ADDITIONAL = {
             'n_initial_exploration_steps': int(5000),
         }
     },
+    'UCB': {
+        'type': 'UCB',
+        'kwargs': {
+            'reparameterize': REPARAMETERIZE,
+            'lr': 3e-4,
+            'target_update_interval': 1,
+            'tau': 5e-3,
+            'store_extra_policy_info': False,
+            'action_prior': 'uniform',
+            'n_initial_exploration_steps': int(5000),
+        }
+    },
     'SQL': {
         'type': 'SQL',
         'kwargs': {
@@ -137,7 +149,7 @@ def get_variant_spec_base(universe, domain, task, policy, algorithm, env_params)
     )
 
     variant_spec = {
-        'git_sha': get_git_rev(),
+        #'git_sha': get_git_rev(),
 
         'environment_params': {
             'training': {

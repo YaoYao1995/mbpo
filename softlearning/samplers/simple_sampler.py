@@ -24,6 +24,7 @@ class SimpleSampler(BaseSampler):
                               reward,
                               terminal,
                               next_observation,
+                              std,
                               info):
         processed_observation = {
             'observations': observation,
@@ -31,6 +32,7 @@ class SimpleSampler(BaseSampler):
             'rewards': [reward],
             'terminals': [terminal],
             'next_observations': next_observation,
+            'stds': [std],
             'infos': info,
         }
 
@@ -56,6 +58,7 @@ class SimpleSampler(BaseSampler):
             reward=reward,
             terminal=terminal,
             next_observation=next_observation,
+            std=0,
             info=info,
         )
 

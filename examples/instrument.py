@@ -215,8 +215,8 @@ def run_example_local(example_module_name, example_argv, local_mode=False):
         num_gpus=example_args.gpus,
         resources=example_args.resources or {},
         local_mode=local_mode,
-        include_webui=example_args.include_webui,
-        temp_dir=example_args.temp_dir)
+        #include_webui=example_args.include_webui,
+        temp_dir="/data1/yaooyao/ray_tmp")
 
     tune.run_experiments(
         experiments,

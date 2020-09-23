@@ -14,7 +14,7 @@ import tensorflow as tf
 from tensorflow.python.training import training_util
 
 from softlearning.algorithms.rl_algorithm import RLAlgorithm
-from softlearning.replay_pools.simple_replay_pool import SimpleReplayPool
+from softlearning.replay_pools.simple_replay_pool import  WeightedReplayPool
 
 from mbpo.models.constructor import construct_model, format_samples_for_training
 from mbpo.models.fake_env import FakeEnv
@@ -28,14 +28,8 @@ def td_target(reward, discount, next_value):
     return reward + discount * next_value
 
 
-class MBPO(RLAlgorithm):
-    """Model-Based Policy Optimization (MBPO)
-
-    References
-    ----------
-        Michael Janner, Justin Fu, Marvin Zhang, Sergey Levine. 
-        When to Trust Your Model: Model-Based Policy Optimization. 
-        arXiv preprint arXiv:1906.08253. 2019.
+class UCB(RLAlgorithm):
+    """UCB Model-Ensemble Policy Optimization (UCB)
     """
 
     def __init__(
@@ -93,7 +87,7 @@ class MBPO(RLAlgorithm):
                 a likelihood ratio based estimator otherwise.
         """
 
-        super(MBPO, self).__init__(**kwargs)
+        super(UCB, self).__init__(**kwargs)
 
         obs_dim = np.prod(training_environment.observation_space.shape)
         act_dim = np.prod(training_environment.action_space.shape)
@@ -106,7 +100,7 @@ class MBPO(RLAlgorithm):
 
         # self._model_pool_size = model_pool_size
         # print('[ MBPO ] Model pool size: {:.2E}'.format(self._model_pool_size))
-        # self._model_pool = SimpleReplayPool(pool._observation_space, pool._action_space, self._model_pool_size)
+        # self._model_pool = WeightedReplayPool(pool._observation_space, pool._action_space, self._model_pool_size)
 
         self._model_retain_epochs = model_retain_epochs
 
@@ -137,7 +131,7 @@ class MBPO(RLAlgorithm):
             -np.prod(self._training_environment.action_space.shape)
             if target_entropy == 'auto'
             else target_entropy)
-        print('[ MBPO ] Target entropy: {}'.format(self._target_entropy))
+        print('[ UCB ] Target entropy: {}'.format(self._target_entropy))
 
         self._discount = discount
         self._tau = tau
@@ -216,8 +210,8 @@ class MBPO(RLAlgorithm):
 
                 if self._timestep % self._model_train_freq == 0 and self._real_ratio < 1.0:
                     self._training_progress.pause()
-                    print('[ MBPO ] log_dir: {} | ratio: {}'.format(self._log_dir, self._real_ratio))
-                    print('[ MBPO ] Training model at epoch {} | freq {} | timestep {} (total: {}) | epoch train steps: {} (total: {})'.format(
+                    print('[ UCB ] log_dir: {} | ratio: {}'.format(self._log_dir, self._real_ratio))
+                    print('[ UCB ] Training model at epoch {} | freq {} | timestep {} (total: {}) | epoch train steps: {} (total: {})'.format(
                         self._epoch, self._model_train_freq, self._timestep, self._total_timestep, self._train_steps_this_epoch, self._num_train_steps)
                     )
 
@@ -357,17 +351,17 @@ class MBPO(RLAlgorithm):
         new_pool_size = self._model_retain_epochs * model_steps_per_epoch
 
         if not hasattr(self, '_model_pool'):
-            print('[ MBPO ] Initializing new model pool with size {:.2e}'.format(
+            print('[ UCB ] Initializing new model pool with size {:.2e}'.format(
                 new_pool_size
             ))
-            self._model_pool = SimpleReplayPool(obs_space, act_space, new_pool_size)
+            self._model_pool = WeightedReplayPool(obs_space, act_space, new_pool_size)
         
         elif self._model_pool._max_size != new_pool_size:
-            print('[ MBPO ] Updating model pool | {:.2e} --> {:.2e}'.format(
+            print('[ UCB ] Updating model pool | {:.2e} --> {:.2e}'.format(
                 self._model_pool._max_size, new_pool_size
             ))
             samples = self._model_pool.return_all_samples()
-            new_pool = SimpleReplayPool(obs_space, act_space, new_pool_size)
+            new_pool = WeightedReplayPool(obs_space, act_space, new_pool_size)
             new_pool.add_samples(samples)
             assert self._model_pool.size == new_pool.size
             self._model_pool = new_pool
@@ -391,7 +385,7 @@ class MBPO(RLAlgorithm):
             next_obs, rew, term, info = self.fake_env.step(obs, act, **kwargs)
             steps_added.append(len(obs))
 
-            samples = {'observations': obs, 'actions': act, 'next_observations': next_obs, 'rewards': rew, 'terminals': term}
+            samples = {'observations': obs, 'actions': act, 'next_observations': next_obs, 'rewards': rew, 'terminals': term, 'stds': info['dev']}
             self._model_pool.add_samples(samples)
 
             nonterm_mask = ~term.squeeze(-1)
@@ -455,6 +449,7 @@ class MBPO(RLAlgorithm):
             - action
             - reward
             - terminals
+            - stds
         """
         self._iteration_ph = tf.placeholder(
             tf.int64, shape=None, name='iteration')
@@ -481,6 +476,12 @@ class MBPO(RLAlgorithm):
             tf.float32,
             shape=(None, 1),
             name='rewards',
+        )
+
+        self._stds_ph = tf.placeholder(
+            tf.float32,
+            shape=(None, 1),
+            name='stds',
         )
 
         self._terminals_ph = tf.placeholder(
@@ -530,14 +531,16 @@ class MBPO(RLAlgorithm):
         Q_target = tf.stop_gradient(self._get_Q_target())
 
         assert Q_target.shape.as_list() == [None, 1]
-
+        # weighted critic loss
+        temperature_critic = 5.0
+        weight_target_Q =  tf.stop_gradient(tf.sigmoid(-self._stds_ph * temperature_critic))
         Q_values = self._Q_values = tuple(
             Q([self._observations_ph, self._actions_ph])
             for Q in self._Qs)
 
         Q_losses = self._Q_losses = tuple(
             tf.losses.mean_squared_error(
-                labels=Q_target, predictions=Q_value, weights=0.5)
+                labels=Q_target, predictions=Q_value, weights=weight_target_Q)
             for Q_value in Q_values)
 
         self._Q_optimizers = tuple(
@@ -608,11 +611,14 @@ class MBPO(RLAlgorithm):
             for Q in self._Qs)
         min_Q_log_target = tf.reduce_min(Q_log_targets, axis=0)
 
+        # weighted actor loss
+        temperature_act = 5.0
+        weight_actor_Q =  tf.stop_gradient(tf.sigmoid(-self._stds_ph * temperature_act) + 0.5)
         if self._reparameterize:
             policy_kl_losses = (
                 alpha * log_pis
                 - min_Q_log_target
-                - policy_prior_log_probs)
+                - policy_prior_log_probs) * weight_actor_Q
         else:
             raise NotImplementedError
 
@@ -673,6 +679,7 @@ class MBPO(RLAlgorithm):
             self._next_observations_ph: batch['next_observations'],
             self._rewards_ph: batch['rewards'],
             self._terminals_ph: batch['terminals'],
+            self._stds_ph: batch['stds'],
         }
 
         if self._store_extra_policy_info:

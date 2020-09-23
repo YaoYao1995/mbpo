@@ -13,7 +13,7 @@ from softlearning.misc.utils import datetimestamp
 DEFAULT_UNIVERSE = 'gym'
 DEFAULT_DOMAIN = 'HalfCheetah'
 DEFAULT_TASK = 'v2'
-DEFAULT_ALGORITHM = 'MBPO'
+DEFAULT_ALGORITHM = 'UCB'
 
 
 TASKS_BY_DOMAIN_BY_UNIVERSE = {
@@ -107,12 +107,12 @@ def add_ray_init_args(parser):
         type=json.loads,
         default=None,
         help=init_help_string("Resources to allocate to ray process."))
-    parser.add_argument(
-        '--include-webui',
-        type=str,
-        default=False,
-        help=init_help_string("Boolean flag indicating whether to start the"
-                              "web UI, which is a Jupyter notebook."))
+    # parser.add_argument(
+    #     '--include-webui',
+    #     type=str,
+    #     default=False,
+    #     help=init_help_string("Boolean flag indicating whether to start the"
+    #                           "web UI, which is a Jupyter notebook."))
     parser.add_argument(
         '--temp-dir',
         type=str,
