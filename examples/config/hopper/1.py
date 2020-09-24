@@ -1,18 +1,16 @@
-# complete WEEE
 params = {
-    'type': 'MEEE',
+    'type': 'MBPO',
     'universe': 'gym',
-    'domain': 'InvertedPendulum',
+    'domain': 'AntTruncatedObs', ## mbpo/env/ant.py
     'task': 'v2',
 
-    'log_dir': '~/ray_MEEE_complete/',
+    'log_dir': '~/ray_mbpo/',
     'exp_name': 'defaults',
 
     'kwargs': {
-        'n_epochs': 80, ## 20k steps
-        'epoch_length': 250,
+        'epoch_length': 1000,
         'train_every_n_steps': 1,
-        'n_train_repeat': 10,
+        'n_train_repeat': 20,
         'eval_render_mode': None,
         'eval_n_episodes': 1,
         'eval_deterministic': True,
@@ -28,10 +26,8 @@ params = {
         'num_networks': 7,
         'num_elites': 5,
         'real_ratio': 0.05,
-        'target_entropy': -0.05,
+        'target_entropy': -4,
         'max_model_t': None,
-        'rollout_schedule': [1, 15, 1, 1],
-        'hidden_dim': 200,
-        'n_initial_exploration_steps': 500,
+        'rollout_schedule': [20, 100, 1, 25],
     }
 }

@@ -30,10 +30,10 @@ def create_MBPO_algorithm(variant, *args, **kwargs):
 
     return algorithm
 
-def create_UCB_algorithm(variant, *args, **kwargs):
-    from mbpo.algorithms.ucb import UCB
+def create_MEEE_algorithm(variant, *args, **kwargs):
+    from mbpo.algorithms.meee import MEEE
 
-    algorithm = UCB(*args, **kwargs)
+    algorithm = MEEE(*args, **kwargs)
 
     return algorithm
 
@@ -42,7 +42,7 @@ ALGORITHM_CLASSES = {
     'SAC': create_SAC_algorithm,
     'SQL': create_SQL_algorithm,
     'MBPO': create_MBPO_algorithm,
-    'UCB': create_UCB_algorithm,
+    'MEEE': create_MEEE_algorithm,
 }
 
 

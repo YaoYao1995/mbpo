@@ -54,8 +54,8 @@ ALGORITHM_PARAMS_ADDITIONAL = {
             'n_initial_exploration_steps': int(5000),
         }
     },
-    'UCB': {
-        'type': 'UCB',
+    'MEEE': {
+        'type': 'MEEE',
         'kwargs': {
             'reparameterize': REPARAMETERIZE,
             'lr': 3e-4,

@@ -23,7 +23,7 @@ import logging
 
 import click
 import sys
-sys.path.append('/data2/yaooyao/mbpo/')
+sys.path.append('~/mbpo/')
 
 from examples.instrument import (
     run_example_dry,

@@ -1,10 +1,10 @@
 params = {
-    'type': 'UCB',
+    'type': 'MEEE',
     'universe': 'gym',
     'domain': 'InvertedPendulum',
     'task': 'v2',
 
-    'log_dir': '~/ray_ucb/',
+    'log_dir': '~/ray_MEEE/',
     'exp_name': 'defaults',
 
     'kwargs': {

@@ -17,7 +17,7 @@ class SimpleSampler(BaseSampler):
         self._n_episodes = 0
         self._current_observation = None
         self._total_samples = 0
-        self._frequence_exploration = 5
+        self._frequence_exploration = 20
         self._cadidate_nums = 10
         self._lamda = 1.0
 

@@ -28,8 +28,8 @@ def td_target(reward, discount, next_value):
     return reward + discount * next_value
 
 
-class UCB(RLAlgorithm):
-    """UCB Model-Ensemble Policy Optimization (UCB)
+class MEEE(RLAlgorithm):
+    """ Model-Ensemble Policy Optimization (MEEE)
     """
 
     def __init__(
@@ -87,7 +87,7 @@ class UCB(RLAlgorithm):
                 a likelihood ratio based estimator otherwise.
         """
 
-        super(UCB, self).__init__(**kwargs)
+        super(MEEE, self).__init__(**kwargs)
 
         obs_dim = np.prod(training_environment.observation_space.shape)
         act_dim = np.prod(training_environment.action_space.shape)
@@ -131,7 +131,7 @@ class UCB(RLAlgorithm):
             -np.prod(self._training_environment.action_space.shape)
             if target_entropy == 'auto'
             else target_entropy)
-        print('[ UCB ] Target entropy: {}'.format(self._target_entropy))
+        print('[ MEEE ] Target entropy: {}'.format(self._target_entropy))
 
         self._discount = discount
         self._tau = tau
@@ -210,8 +210,8 @@ class UCB(RLAlgorithm):
 
                 if self._timestep % self._model_train_freq == 0 and self._real_ratio < 1.0:
                     self._training_progress.pause()
-                    print('[ UCB ] log_dir: {} | ratio: {}'.format(self._log_dir, self._real_ratio))
-                    print('[ UCB ] Training model at epoch {} | freq {} | timestep {} (total: {}) | epoch train steps: {} (total: {})'.format(
+                    print('[ MEEE ] log_dir: {} | ratio: {}'.format(self._log_dir, self._real_ratio))
+                    print('[ MEEE ] Training model at epoch {} | freq {} | timestep {} (total: {}) | epoch train steps: {} (total: {})'.format(
                         self._epoch, self._model_train_freq, self._timestep, self._total_timestep, self._train_steps_this_epoch, self._num_train_steps)
                     )
 
@@ -355,13 +355,13 @@ class UCB(RLAlgorithm):
         new_pool_size = self._model_retain_epochs * model_steps_per_epoch
 
         if not hasattr(self, '_model_pool'):
-            print('[ UCB ] Initializing new model pool with size {:.2e}'.format(
+            print('[ MEEE ] Initializing new model pool with size {:.2e}'.format(
                 new_pool_size
             ))
             self._model_pool = WeightedReplayPool(obs_space, act_space, new_pool_size)
         
         elif self._model_pool._max_size != new_pool_size:
-            print('[ UCB ] Updating model pool | {:.2e} --> {:.2e}'.format(
+            print('[ MEEE ] Updating model pool | {:.2e} --> {:.2e}'.format(
                 self._model_pool._max_size, new_pool_size
             ))
             samples = self._model_pool.return_all_samples()

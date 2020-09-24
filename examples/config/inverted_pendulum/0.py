@@ -1,10 +1,10 @@
 params = {
-    'type': 'UCB',
+    'type': 'MBPO',
     'universe': 'gym',
     'domain': 'InvertedPendulum',
     'task': 'v2',
 
-    'log_dir': '~/ray_ucb/',
+    'log_dir': '~/ray_mbop/',
     'exp_name': 'defaults',
 
     'kwargs': {
